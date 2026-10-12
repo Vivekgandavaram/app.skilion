@@ -13,7 +13,7 @@ export const hasIllustration = (id: string) => !!resolve(id);
  * <Illustration id="hero" /> shows public/illustrations/hero.(webp|png|jpg|svg) when it exists,
  * otherwise a brand-styled placeholder. Register slots in src/data/illustrations.ts.
  */
-export default function Illustration({ id, className = "", priority = false, rounded = true, fit = "cover" }: { id: string; className?: string; priority?: boolean; rounded?: boolean; fit?: "cover" | "contain" }) {
+export default function Illustration({ id, className = "", priority = false, rounded = true, fit = "contain" }: { id: string; className?: string; priority?: boolean; rounded?: boolean; fit?: "cover" | "contain" }) {
   const slot = SLOT_MAP[id];
   if (!slot) return null;
   const src = resolve(id);
