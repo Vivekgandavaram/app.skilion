@@ -68,6 +68,20 @@ const Schema = z.object({
   type: z.enum(TYPES).default("update"),
   text: z.string().trim().min(3, "Write at least a few words").max(2000, "Keep it under 2000 characters"),
   url: z.string().trim().url().max(500).optional().or(z.literal("")),
+  media: z.array(z.object({
+    type: z.enum(["image", "video"]),
+    url: z.string().trim().min(1).max(10_000_000),
+    name: z.string().max(200).optional(),
+    mimeType: z.string().max(100).optional(),
+    width: z.number().int().min(1).max(6000).optional(),
+    height: z.number().int().min(1).max(6000).optional(),
+    cropX: z.number().min(0).max(100).optional(),
+    cropY: z.number().min(0).max(100).optional(),
+    zoom: z.number().min(1).max(3).optional(),
+    start: z.number().min(0).max(60).optional(),
+    end: z.number().min(0).max(60).optional(),
+    duration: z.number().min(0).max(60).optional(),
+  })).max(3).default([]),
   tags: z.array(z.string().trim().min(1).max(30)).max(5).default([]),
   workId: z.string().optional(),
   opp: z.object({
@@ -87,6 +101,7 @@ export const POST = route({ auth: true, verified: true, rate: { key: "post", lim
   const posts = await col("posts");
   const dup = await posts.findOne({ authorId: user._id, text: d.text, createdAt: { $gt: new Date(Date.now() - 86400_000) }, deleted: { $ne: true } });
   if (dup) throw new HttpError(409, "You already posted this.");
+  if (d.media.length && d.media.some((m) => !m.url.startsWith("data:"))) throw bad("Media uploads must be provided as local file data.");
   let preview: PostDoc["preview"], url = d.url || undefined;
   if (url) {
     try { await assertPublicUrl(url); } catch { throw bad("That link cannot be used."); }
@@ -100,7 +115,7 @@ export const POST = route({ auth: true, verified: true, rate: { key: "post", lim
     workId = w._id;
   }
   const tags = [...new Set(d.tags.map((t) => t.toLowerCase().replace(/^#/, "").replace(/[^a-z0-9+#.-]/g, "")).filter(Boolean))];
-  const doc: any = { authorId: user._id, type: d.type, text: d.text, url, preview, tags, workId, counts: { likes: 0, comments: 0, saves: 0 }, createdAt: new Date() };
+  const doc: any = { authorId: user._id, type: d.type, text: d.text, url, media: d.media.length ? d.media : undefined, preview, tags, workId, counts: { likes: 0, comments: 0, saves: 0 }, createdAt: new Date() };
   if (d.opp) doc.opp = { ...d.opp, skillsNeeded: [...new Set(d.opp.skillsNeeded.map((s) => normSkill(s).name))] };
   const r = await posts.insertOne(doc);
   return { ok: true, id: r.insertedId.toString() };

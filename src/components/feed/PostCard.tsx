@@ -1,15 +1,47 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Heart, MessageCircle, Bookmark, Trash2, ExternalLink, Clock, Moon } from "lucide-react";
 import { api, timeAgo } from "@/lib/client";
 import { Avatar, VerifyBadges } from "@/components/ui";
 import { ConfirmDialog, useToast } from "@/components/client-ui";
 import ReportButton from "@/components/ReportButton";
-import { GOAL_LABEL, COMP_LABEL } from "@/lib/types";
+import { GOAL_LABEL, COMP_LABEL, type PostMedia } from "@/lib/types";
+
+function MediaPreview({ item }: { item: PostMedia }) {
+  const vRef = useRef<HTMLVideoElement | null>(null);
+  if (item.type === "image") {
+    return <img src={item.url} alt={item.name || "Shared media"} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 16, transform: `scale(${item.zoom ?? 1})`, objectPosition: `${item.cropX ?? 50}% ${item.cropY ?? 50}%` }} />;
+  }
+
+  return (
+    <video
+      ref={vRef}
+      src={item.url}
+      controls
+      preload="metadata"
+      muted
+      playsInline
+      style={{ width: "100%", maxHeight: 520, borderRadius: 16, background: "#0f172a" }}
+      onLoadedMetadata={(e) => {
+        const start = item.start ?? 0;
+        e.currentTarget.currentTime = start;
+      }}
+      onTimeUpdate={(e) => {
+        const start = item.start ?? 0;
+        const end = item.end ?? Number.POSITIVE_INFINITY;
+        if (e.currentTarget.currentTime > end) {
+          e.currentTarget.currentTime = start;
+          e.currentTarget.pause();
+        }
+      }}
+    />
+  );
+}
 
 export type FeedPost = {
   id: string; type: string; text: string; url?: string; tags: string[]; createdAt: string;
+  media?: PostMedia[];
   preview?: { title?: string; description?: string; image?: string; siteName?: string; finalUrl?: string; fallback?: boolean };
   opp?: { goal: keyof typeof GOAL_LABEL; compensation: (keyof typeof COMP_LABEL)[]; skillsNeeded: string[]; hoursPerWeek?: number };
   counts: { likes: number; comments: number; saves: number }; work?: { id: string; title: string };
@@ -82,6 +114,20 @@ export default function PostCard({ post, signedIn, onRemoved }: { post: FeedPost
           {p.preview.image ? <div className="thumb" style={{ backgroundImage: `url(${p.preview.image})` }} role="img" aria-label="" /> : <div className="thumb" aria-hidden />}
           <div className="meta"><span className="xs muted row-nowrap" style={{ gap: 4 }}><ExternalLink size={12} aria-hidden />{p.preview.siteName}</span><b className="clamp-2">{p.preview.title}</b>{p.preview.description && <span className="small muted clamp-2">{p.preview.description}</span>}</div>
         </a>
+      )}
+      {p.media && p.media.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: p.media.length > 1 ? "repeat(auto-fit, minmax(200px, 1fr))" : "1fr", gap: 12, marginTop: 12 }}>
+          {p.media.map((item, idx) => (
+            <div key={`${item.url}-${idx}`} style={{ position: "relative", overflow: "hidden", borderRadius: 18, border: "1px solid var(--line)", background: "#0f172a" }}>
+              <MediaPreview item={item} />
+              {item.type === "video" && (item.start !== undefined || item.end !== undefined) && (
+                <span className="chip chip-line" style={{ position: "absolute", top: 10, left: 10, background: "rgba(15,23,42,0.75)", color: "white" }}>
+                  Clip {item.start ?? 0}s–{item.end ?? "end"}s
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
       )}
       {p.work && p.author.handle && <div className="small muted">Linked project: <Link href={`/u/${p.author.handle}#work-${p.work.id}`}>{p.work.title}</Link></div>}
       {p.tags.length > 0 && <div className="chips">{p.tags.map((t) => <Link key={t} href={`/discover?tag=${encodeURIComponent(t)}`} className="chip chip-line">#{t}</Link>)}</div>}

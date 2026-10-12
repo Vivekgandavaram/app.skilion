@@ -26,7 +26,7 @@ export const COMP_LABEL: Record<Compensation, string> = {
   learning: "Learning / credit",
   volunteer: "Volunteer",
 };
-export const DOMAINS = ["Design", "Engineering", "AI / ML", "Product & Strategy", "Marketing", "Finance", "Operations"] as const;
+export const DOMAINS = ["Design", "Engineering", "AI / ML", "Product & Strategy", "Marketing & Growth", "Finance & Business", "Operations & Support", "Research & Analysis", "Community & Content", "Sales & Partnerships", "Security & Trust", "Other"] as const;
 
 export type Verification = { type: "email" | "github" | "google" | "repo" | "endorsement" | "identity"; at: Date; detail?: string };
 export type Skill = { name: string; slug: string; evidenceWorkIds: string[] };
@@ -93,12 +93,29 @@ export interface WorkDoc {
   updatedAt: Date;
 }
 
+export type PostMedia = {
+  id?: string;
+  type: "image" | "video";
+  url: string;
+  name?: string;
+  mimeType?: string;
+  width?: number;
+  height?: number;
+  cropX?: number;
+  cropY?: number;
+  zoom?: number;
+  start?: number;
+  end?: number;
+  duration?: number;
+};
+
 export interface PostDoc {
   _id: ObjectId;
   authorId: ObjectId;
   type: "update" | "project" | "demo" | "article" | "opportunity" | "squad";
   text: string;
   url?: string;
+  media?: PostMedia[];
   preview?: { title?: string; description?: string; image?: string; siteName?: string; creator?: string; finalUrl?: string; fallback?: boolean };
   tags: string[];
   workId?: ObjectId;

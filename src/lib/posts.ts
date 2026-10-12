@@ -21,7 +21,7 @@ export async function hydratePosts(posts: PostDoc[], viewer?: UserDoc | null, pu
     const a = amap.get(p.authorId.toString());
     const w = p.workId ? wmap.get(p.workId.toString()) : undefined;
     return ser({
-      _id: p._id, type: p.type, text: p.text, url: p.url, preview: p.preview, tags: p.tags, opp: p.opp, counts: p.counts, createdAt: p.createdAt,
+      _id: p._id, type: p.type, text: p.text, url: p.url, media: p.media, preview: p.preview, tags: p.tags, opp: p.opp, counts: p.counts, createdAt: p.createdAt,
       projectId: p.projectId,
       work: w ? { id: w._id, title: w.title } : undefined,
       author: a ? { id: a._id, name: a.name, handle: a.handle, image: a.image, headline: a.headline, verifications: publicOnly ? undefined : a.verifications.map((v) => ({ type: v.type })), dayJob: a.dayJob } : { id: "", name: "Former member", handle: "", headline: "" },
