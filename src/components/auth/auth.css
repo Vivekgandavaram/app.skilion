@@ -6,6 +6,8 @@
 .auth-side { background: var(--navy); color: #fff; padding: 36px 44px; display: flex; flex-direction: column; gap: 28px; justify-content: space-between; position: sticky; top: 0; height: 100dvh; overflow: hidden; background-image: radial-gradient(600px 300px at 80% 0%, rgba(101,199,243,.22), transparent 70%); }
 .auth-art { flex: 1; min-height: 0; display: grid; align-items: center; }
 .auth-art .illo { max-height: 100%; width: auto; max-width: 100%; margin-inline: auto; }
+.auth-art-logo { background: rgba(255, 255, 255, 0.92); border-radius: 32px; padding: 24px; width: min(100%, 620px); min-height: 360px; margin: 0 auto; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
+.auth-art-logo img { width: min(100%, 300px); height: auto; display: block; margin: auto; }
 .auth-quote { font: 800 26px/1.15 var(--font-display); letter-spacing: -.02em; max-width: 18ch; }
 @media (max-width: 900px) { .auth-shell { grid-template-columns: 1fr; } .auth-side { display: none; } .auth-mobile-bar { display: block; } .auth-card { padding-block: 28px 48px; } }
 .pw-wrap { position: relative; } .pw-wrap .input { padding-right: 70px; } .pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
