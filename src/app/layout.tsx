@@ -4,6 +4,7 @@ import { ToastProvider } from "@/components/client-ui";
 import { env } from "@/lib/env";
 import { SITE, jsonLd, orgLd } from "@/lib/seo";
 import BrandIntro from "@/components/BrandIntro";
+import PageNavigationControls from "@/components/PageNavigationControls";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
@@ -18,7 +19,7 @@ export const viewport: Viewport = { themeColor: "#080B10", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -29,7 +30,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <noscript><style>{".intro{display:none!important}"}</style></noscript>
         <script dangerouslySetInnerHTML={{ __html: "try{if(sessionStorage.getItem('sk_intro_seen')==='1')document.documentElement.classList.add('sk-seen')}catch(e){}" }} />
         <BrandIntro />
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          {children}
+          <PageNavigationControls />
+        </ToastProvider>
       </body>
     </html>
   );
