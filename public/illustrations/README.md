@@ -1,0 +1,3 @@
+Drop generated illustrations here, named after the slot id: `hero.webp`, `method-profile.webp`, ...
+The full list with ready-to-paste AI prompts is in docs/ILLUSTRATION_PROMPTS.md.
+Run `npm run assets:sync` (dev and build do it automatically).

@@ -1,0 +1,15 @@
+.auth-shell { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 44%); background: #fff; }
+.auth-main { display: flex; flex-direction: column; min-width: 0; background: linear-gradient(#fff, var(--pale)); }
+.auth-mobile-bar { display: none; background: var(--ink); padding: 14px var(--gutter); }
+.auth-card { width: 100%; max-width: 460px; margin: auto; padding: 48px var(--gutter); }
+.auth-footer { margin-top: 24px; text-align: center; }
+.auth-side { background: var(--navy); color: #fff; padding: 36px 44px; display: flex; flex-direction: column; gap: 28px; justify-content: space-between; position: sticky; top: 0; height: 100dvh; overflow: hidden; background-image: radial-gradient(600px 300px at 80% 0%, rgba(101,199,243,.22), transparent 70%); }
+.auth-art { flex: 1; min-height: 0; display: grid; align-items: center; }
+.auth-art .illo { max-height: 100%; width: auto; max-width: 100%; margin-inline: auto; }
+.auth-quote { font: 800 26px/1.15 var(--font-display); letter-spacing: -.02em; max-width: 18ch; }
+@media (max-width: 900px) { .auth-shell { grid-template-columns: 1fr; } .auth-side { display: none; } .auth-mobile-bar { display: block; } .auth-card { padding-block: 28px 48px; } }
+.pw-wrap { position: relative; } .pw-wrap .input { padding-right: 70px; } .pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+.pw-meter { display: flex; gap: 4px; margin-top: 6px; } .pw-meter i { height: 4px; flex: 1; border-radius: 2px; background: var(--line); } .pw-meter i.on1 { background: #E5A100; } .pw-meter i.on2 { background: var(--blue); } .pw-meter i.on3 { background: var(--ok); }
+.steps-dots { display: flex; gap: 6px; } .steps-dots i { height: 6px; flex: 1; border-radius: 3px; background: var(--ice-tint); } .steps-dots i.done { background: var(--blue); } .steps-dots i.now { background: var(--vermilion); }
+.onb { max-width: 760px; margin-inline: auto; padding: 28px var(--gutter) 80px; }
+.onb-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px; }
