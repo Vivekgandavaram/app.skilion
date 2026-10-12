@@ -21,14 +21,14 @@ const INTENT_INFO: Record<Intent, { t: string; d: string; icon: any }> = {
 const GOAL_ICON: Record<Goal, any> = { validate: FlaskConical, prototype: Hammer, help: LifeBuoy, company: Rocket };
 const STEPS = ["Intent", "Skills", "Your time", "Availability", "Links", "Privacy"];
 
-type P = { intents: Intent[]; goals: Goal[]; headline: string; domain: string; subdomain: string; skills: string[]; dayJob: boolean; compensation: Compensation[]; rateMin: string; rateMax: string; rateUnit: "hour" | "session"; timezone: string; location: string; hours: number; status: "open" | "busy" | "unavailable"; slots: number[]; github: string; linkedin: string; website: string; public: boolean; showRate: boolean; showLocation: boolean; showAvailability: boolean; showLinks: boolean };
+type P = { intents: Intent[]; goals: Goal[]; headline: string; domain: string; subdomain: string; customDomain: string; skills: string[]; dayJob: boolean; compensation: Compensation[]; rateMin: string; rateMax: string; rateUnit: "hour" | "session"; timezone: string; location: string; hours: number; status: "open" | "busy" | "unavailable"; slots: number[]; github: string; linkedin: string; website: string; public: boolean; showRate: boolean; showLocation: boolean; showAvailability: boolean; showLinks: boolean };
 
 export default function Onboarding({ me }: { me: any }) {
   const { toast } = useToast();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [p, setP] = useState<P>(() => ({
-    intents: me.intents || [], goals: me.goals || [], headline: me.headline || "", domain: me.domain || "", subdomain: me.subdomain || "", skills: (me.skills || []).map((s: any) => s.name), dayJob: !!me.dayJob,
+    intents: me.intents || [], goals: me.goals || [], headline: me.headline || "", domain: me.domain || "", subdomain: me.subdomain || "", customDomain: "", skills: (me.skills || []).map((s: any) => s.name), dayJob: !!me.dayJob,
     compensation: me.compensation?.length ? me.compensation : ["paid", "equity", "revshare", "learning"], rateMin: me.rate ? String(me.rate.min) : "", rateMax: me.rate ? String(me.rate.max) : "", rateUnit: me.rate?.unit || "hour",
     timezone: me.timezone || "Asia/Kolkata", location: me.location || "", hours: me.availability?.hoursPerWeek ?? 6, status: me.availability?.status || "open", slots: me.availability?.slots || [],
     github: me.links?.github || "", linkedin: me.links?.linkedin || "", website: me.links?.website || "", public: !!me.visibility?.public, showRate: me.visibility?.showRate ?? true, showLocation: me.visibility?.showLocation ?? true, showAvailability: me.visibility?.showAvailability ?? true, showLinks: me.visibility?.showLinks ?? true,
@@ -46,7 +46,7 @@ export default function Onboarding({ me }: { me: any }) {
   const tzs = useMemo(() => { try { return (Intl as any).supportedValuesOf("timeZone") as string[]; } catch { return ["Asia/Kolkata", "UTC"]; } }, []);
 
   const payload = () => ({
-    intents: p.intents, goals: p.goals, headline: p.headline, domain: p.domain as any, subdomain: p.subdomain, skills: p.skills, dayJob: p.dayJob, compensation: p.compensation,
+    intents: p.intents, goals: p.goals, headline: p.headline, domain: p.domain === "Other" ? (p.customDomain.trim() || "Other") : (p.domain as any), subdomain: p.subdomain, skills: p.skills, dayJob: p.dayJob, compensation: p.compensation,
     rate: p.rateMax ? { min: Number(p.rateMin || 0), max: Number(p.rateMax), currency: "INR", unit: p.rateUnit } : null,
     timezone: p.timezone, location: p.location, availability: { status: p.status, hoursPerWeek: p.hours, slots: p.slots },
     links: { github: p.github, linkedin: p.linkedin, website: p.website },
@@ -85,8 +85,9 @@ export default function Onboarding({ me }: { me: any }) {
         {step === 1 && <div className="stack">
           <h1 className="h2">What are you good at?</h1>
           <Field label="Headline" htmlFor="ob-head" help="One line, like “Embedded engineer who ships sensor products”."><input id="ob-head" className="input" maxLength={120} value={p.headline} onChange={(e) => set("headline", e.target.value)} /></Field>
-          <Field label="Main area" htmlFor="ob-domain"><select id="ob-domain" className="select" value={p.domain} onChange={(e) => setP((x) => ({ ...x, domain: e.target.value, subdomain: "" }))}><option value="">Choose one</option>{DOMAINS.map((d) => <option key={d}>{d}</option>)}</select></Field>
-          {subdomainsOf(p.domain).length > 0 && <Field label="Sub-area" optional htmlFor="ob-sub"><select id="ob-sub" className="select" value={p.subdomain} onChange={(e) => set("subdomain", e.target.value)}><option value="">Choose one</option>{subdomainsOf(p.domain).map((d) => <option key={d}>{d}</option>)}</select></Field>}
+          <Field label="Main area" htmlFor="ob-domain"><select id="ob-domain" className="select" value={p.domain} onChange={(e) => setP((x) => ({ ...x, domain: e.target.value, subdomain: "", customDomain: e.target.value === "Other" ? x.customDomain : "" }))}><option value="">Choose one</option>{DOMAINS.map((d) => <option key={d}>{d}</option>)}</select></Field>
+          {p.domain === "Other" && <Field label="Tell us your area" htmlFor="ob-custom-domain"><input id="ob-custom-domain" className="input" placeholder="e.g. Legal, Research, Operations, Community" value={p.customDomain} onChange={(e) => set("customDomain", e.target.value)} /></Field>}
+          {p.domain && p.domain !== "Other" && subdomainsOf(p.domain).length > 0 && <Field label="Sub-area" optional htmlFor="ob-sub"><select id="ob-sub" className="select" value={p.subdomain} onChange={(e) => set("subdomain", e.target.value)}><option value="">Choose one</option>{subdomainsOf(p.domain).map((d) => <option key={d}>{d}</option>)}</select></Field>}
           <Field label="Skills" htmlFor="skills"><SkillPicker value={p.skills} onChange={(v) => set("skills", v)} domain={p.domain} subdomain={p.subdomain} /></Field>
         </div>}
         {step === 2 && <div className="stack">

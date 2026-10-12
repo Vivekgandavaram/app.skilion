@@ -32,25 +32,42 @@ export const TAXONOMY: Record<Domain, Record<string, string[]>> = {
     "Startup & Fundraising": ["Startup Strategy", "Fundraising", "Business Analysis"],
     "Project Management": ["Project Management", "Agile"],
   },
-  Marketing: {
+  "Marketing & Growth": {
     "Growth & Performance": ["Growth Marketing", "Performance Marketing", "Analytics"],
     "Content & SEO": ["SEO", "Content Marketing", "Copywriting"],
     "Social & Community": ["Social Media", "Community Building"],
     "Email & Lifecycle": ["Email Marketing", "Copywriting", "Analytics"],
     "Sales & Partnerships": ["Sales", "Partnerships"],
   },
-  Finance: {
+  "Finance & Business": {
     "Financial Modelling": ["Financial Modelling", "Unit Economics", "Budgeting"],
     "Accounting & Tax": ["Accounting", "Budgeting", "Compliance"],
     "Pricing & Monetisation": ["Pricing", "Unit Economics"],
     "Legal & Compliance": ["Legal Basics", "Compliance"],
   },
-  Operations: {
+  "Operations & Support": {
     "Operations & Supply Chain": ["Operations", "Supply Chain"],
     "Customer Support & Success": ["Customer Support"],
     "People & Hiring": ["Hiring"],
     "Teaching & Training": ["Teaching", "Public Speaking"],
   },
+  "Research & Analysis": {
+    "Research": ["Research", "Market Research", "Interviews", "Insights"],
+    "Analysis": ["Analytics", "Reporting", "Strategy", "Forecasting"],
+  },
+  "Community & Content": {
+    "Content": ["Content Strategy", "Writing", "Editorial"],
+    "Community": ["Community Building", "Events", "Moderation"],
+  },
+  "Sales & Partnerships": {
+    "Sales": ["Sales", "B2B Sales", "CRM"],
+    "Partnerships": ["Partnerships", "Business Development", "Strategic Alliances"],
+  },
+  "Security & Trust": {
+    "Security": ["Security", "Trust & Safety", "Risk Review"],
+    "QA & Reliability": ["QA", "Testing", "Reliability"],
+  },
+  Other: {},
 };
 
 export const subdomainsOf = (d?: string): string[] => (d && (TAXONOMY as Record<string, Record<string, string[]>>)[d] ? Object.keys((TAXONOMY as Record<string, Record<string, string[]>>)[d]) : []);
