@@ -42,7 +42,7 @@ export default function Home() {
           <div className="stack-lg">
             <div className="stack">
               <h1 className="h-hero" id="hero-title">Find the people to build it with. Check what they have shipped first.</h1>
-              <p className="lead">Skilion helps you assemble a small team for a real idea: test it, prototype it, get unstuck or start the company. Every profile links to work you can inspect, and every skill reflects what has actually been built.</p>
+              <p className="lead">Skilion is where you put together a small team for an idea: test it, prototype it, get unstuck or start the company. Every profile links to real work, and every skill says whether a project backs it up.</p>
             </div>
             <div className="hero-actions">
               <Link className="btn btn-primary btn-lg" href="/signup">Create your profile</Link>
