@@ -18,8 +18,18 @@ export async function sendEmail(m: Mail): Promise<{ sent: boolean; dev?: boolean
   }
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.RESEND_FROM || "Skilion <onboarding@resend.dev>", to: [m.to], subject: m.subject, html: m.html, text: m.text }),
+    headers: {
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM || "Skilion <noreply@vigotech.in>",
+      reply_to: process.env.RESEND_REPLY_TO || "support@vigotech.in",
+      to: [m.to],
+      subject: m.subject,
+      html: m.html,
+      text: m.text,
+    }),
   });
   if (!res.ok) {
     console.error("Resend error", res.status, await res.text().catch(() => ""));

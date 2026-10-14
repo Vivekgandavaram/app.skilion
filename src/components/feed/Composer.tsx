@@ -4,12 +4,14 @@ import { ImageIcon, Link2, Send, Video } from "lucide-react";
 import { api } from "@/lib/client";
 import { Field, Segmented, useToast, useDebounced } from "@/components/client-ui";
 import SkillPicker from "@/components/SkillPicker";
+import ImageCanvasEditor from "@/components/feed/ImageCanvasEditor";
 import { GOALS, GOAL_LABEL, COMPENSATION, COMP_LABEL } from "@/lib/types";
 
 type MediaDraft = {
   id: string;
   type: "image" | "video";
   url: string;
+  originalUrl?: string;
   name: string;
   mimeType: string;
   width?: number;
@@ -44,6 +46,7 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
   const [hours, setHours] = useState("");
   const [media, setMedia] = useState<MediaDraft[]>([]);
   const [mediaError, setMediaError] = useState("");
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
   const [prev, setPrev] = useState<any>(null);
@@ -93,6 +96,7 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         type: file.type.startsWith("video/") ? "video" : "image",
         url: result,
+        ...(file.type.startsWith("image/") ? { originalUrl: result } : {}),
         name: file.name,
         mimeType: file.type,
         cropX: 50,
@@ -115,13 +119,19 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
       }
       items.push(entry);
     }
-    if (items.length) setMedia((prev) => [...prev, ...items]);
+    if (items.length) {
+      setMedia((prev) => [...prev, ...items]);
+      const firstImage = items.find((item) => item.type === "image");
+      if (firstImage) setEditingMediaId(firstImage.id);
+    }
     if (!items.length && !mediaError) setMediaError("No valid media selected.");
   }
 
   function updateMedia(id: string, patch: Partial<MediaDraft>) {
     setMedia((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
   }
+
+  const editingImage = media.find((item) => item.id === editingMediaId && item.type === "image");
 
   if (!emailVerified) return <div className="alert alert-warn">Verify your email to post. <a href="/verify">Verify now</a></div>;
   if (!open) return (
@@ -131,7 +141,18 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
     </div>
   );
   return (
-    <form className="card card-pad stack" onSubmit={submit} aria-label="Create a post">
+    <>
+      {editingImage && (
+        <ImageCanvasEditor
+          imageSrc={editingImage.originalUrl ?? editingImage.url}
+          onClose={() => setEditingMediaId(null)}
+          onApply={(dataUrl) => {
+            updateMedia(editingImage.id, { url: dataUrl, mimeType: "image/jpeg", cropX: 50, cropY: 50, zoom: 1 });
+            setEditingMediaId(null);
+          }}
+        />
+      )}
+      <form className="card card-pad stack" onSubmit={submit} aria-label="Create a post">
       <div className="row between"><b>New post</b><button type="button" className="link-btn small" style={{ textDecoration: "none", color: "var(--slate)" }} onClick={() => setOpen(false)}>Close</button></div>
       <Segmented label="Post type" value={type} onChange={setType} options={TYPES.map((t) => ({ value: t.value, label: t.label }))} />
       <div className="stack-sm">
@@ -167,7 +188,10 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
                 )}
                 {item.type === "image" && (
                   <div className="stack-sm" style={{ marginTop: 12 }}>
-                    <label className="small muted" htmlFor={`zoom-${item.id}`}>Zoom {item.zoom.toFixed(2)}x</label>
+                    <div className="row between" style={{ gap: 8 }}>
+                      <label className="small muted" htmlFor={`zoom-${item.id}`}>Zoom {item.zoom.toFixed(2)}x</label>
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditingMediaId(item.id)}>Frame photo</button>
+                    </div>
                     <input id={`zoom-${item.id}`} type="range" min={1} max={2.2} step={0.05} value={item.zoom} onChange={(e) => updateMedia(item.id, { zoom: Number(e.target.value) })} />
                     <div className="row" style={{ gap: 10 }}>
                       <label className="small muted" style={{ flex: 1 }} htmlFor={`crop-x-${item.id}`}>Horizontal</label>
@@ -220,6 +244,7 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
       {works.length > 0 && <Field label="Attach a project from your profile" optional htmlFor="post-work"><select id="post-work" className="select" value={workId} onChange={(e) => setWorkId(e.target.value)}><option value="">None</option>{works.map((w) => <option key={w.id} value={w.id}>{w.title}</option>)}</select></Field>}
       </div></details>
       <div className="row between"><span className="xs muted tnum">{text.length}/2000</span><button className="btn btn-primary" disabled={busy || text.trim().length < 3}>{busy ? <span className="spinner" /> : <><Send aria-hidden />Post</>}</button></div>
-    </form>
+      </form>
+    </>
   );
 }

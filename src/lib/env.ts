@@ -21,7 +21,7 @@ export const env = {
     return Number.isFinite(n) ? n : 18;
   },
   get contactEmail() {
-    return process.env.CONTACT_EMAIL || "contact@vigotech.in";
+    return process.env.CONTACT_EMAIL || "info@vigotech.in";
   },
 };
 export const has = (k: string) => !!process.env[k];

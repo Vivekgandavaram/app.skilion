@@ -31,15 +31,26 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 /* ---------- modal ---------- */
 export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
-    setTimeout(() => ref.current?.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 30);
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = ""; prev?.focus?.(); };
-  }, [open, onClose]);
+    const focusTimer = window.setTimeout(() => {
+      const field = ref.current?.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]),textarea:not([disabled]),select:not([disabled])');
+      const primary = ref.current?.querySelector<HTMLElement>('button:not(.icon-btn):not([disabled])');
+      (field || primary || ref.current?.querySelector<HTMLElement>('.icon-btn'))?.focus();
+    }, 30);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      if (prev?.isConnected) prev.focus();
+    };
+  }, [open]);
   if (!open) return null;
   return (
     <div className="modal-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
