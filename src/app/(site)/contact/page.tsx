@@ -14,9 +14,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ t
         <div className="stack">
           <h2 className="h3">Direct addresses</h2>
           <dl className="stack-sm" style={{ margin: 0 }}>
-            <div><dt className="xs muted">Support and general</dt><dd style={{ margin: 0 }} className="mk-selectable">contact@vigotech.in</dd></div>
-            <div><dt className="xs muted">Reports and moderation (reviewed within 24 hours)</dt><dd style={{ margin: 0 }} className="mk-selectable">moderation@vigotech.in</dd></div>
-            <div><dt className="xs muted">Security issues</dt><dd style={{ margin: 0 }} className="mk-selectable">security@vigotech.in</dd></div>
+            <div><dt className="xs muted">Admin and reports</dt><dd style={{ margin: 0 }} className="mk-selectable"><a href="mailto:admin@vigotech.in">admin@vigotech.in</a></dd></div>
+            <div><dt className="xs muted">Automated messages only (cannot receive replies)</dt><dd style={{ margin: 0 }} className="mk-selectable">noreply@vigotech.in</dd></div>
+            <div><dt className="xs muted">Support</dt><dd style={{ margin: 0 }} className="mk-selectable"><a href="mailto:support@vigotech.in">support@vigotech.in</a></dd></div>
+            <div><dt className="xs muted">VIGO Tech</dt><dd style={{ margin: 0 }} className="mk-selectable"><a href="mailto:info@vigotech.in">info@vigotech.in</a></dd></div>
           </dl>
           <p className="muted small">If your account was suspended, choose &quot;Appeal a decision&quot; and write from the email on the account.</p>
         </div>

@@ -34,7 +34,7 @@ Only `MONGODB_URI` and `AUTH_SECRET` are needed to sign up and use the app. With
 1. **MongoDB Atlas (free M0)** — create a cluster, a database user, and allow network access `0.0.0.0/0` (Vercel uses dynamic IPs). Put the connection string in `MONGODB_URI`. Indexes are created automatically on first use.
 2. **AUTH_SECRET** — `openssl rand -base64 48`.
 3. **ADMIN_EMAILS** — comma separated; those accounts get the admin role at sign-up/login.
-4. **Resend** — create an API key → `RESEND_API_KEY`. `onboarding@resend.dev` can only email *your own* Resend account address; verify a domain and set `RESEND_FROM="Skilion <no-reply@yourdomain>"` for real users.
+4. **Resend** — create an API key → `RESEND_API_KEY`. Verify `vigotech.in` in Resend and configure the approved sender `RESEND_FROM="Skilion <noreply@vigotech.in>"` before sending to users.
 5. **Google OAuth** — Google Cloud Console → APIs & Services → Credentials → OAuth client (Web). Authorised redirect URI: `{SITE_URL}/api/auth/google/callback`. Add both localhost and production URIs.
 6. **GitHub OAuth** — Settings → Developer settings → OAuth Apps. Callback: `{SITE_URL}/api/auth/github/callback`.
 7. **Gemini** — free key at aistudio.google.com → `GEMINI_API_KEY`.
