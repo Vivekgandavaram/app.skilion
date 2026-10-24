@@ -5,7 +5,7 @@ import { col } from "@/lib/db";
 import { env } from "@/lib/env";
 import { checkRate } from "@/lib/security";
 import { ipOf } from "@/lib/api";
-import { issueMobileCode } from "@/app/api/auth/mobile/oauth/exchange/route";
+import { issueMobileCode } from "@/lib/mobile/oauth-codes";
 
 export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {

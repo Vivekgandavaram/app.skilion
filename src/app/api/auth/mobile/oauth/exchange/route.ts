@@ -4,7 +4,8 @@ import { col } from "@/lib/db";
 import { signAccessToken, issueRefreshToken } from "@/lib/mobile/tokens";
 import { ser } from "@/lib/serialize";
 import type { UserDoc } from "@/lib/types";
-import crypto from "node:crypto";
+import { ObjectId } from "mongodb";
+import { consumeMobileCode } from "@/lib/mobile/oauth-codes";
 
 const Schema = z.object({
   code: z.string().min(10),
@@ -12,23 +13,12 @@ const Schema = z.object({
   deviceId: z.string().optional(),
 });
 
-const codes = new Map<string, { userId: string; exp: number }>();
-
-export function issueMobileCode(userId: string) {
-  const code = crypto.randomBytes(32).toString("base64url");
-  codes.set(code, { userId, exp: Date.now() + 60000 });
-  // cleanup
-  for (const [k, v] of codes) if (v.exp < Date.now()) codes.delete(k);
-  return code;
-}
-
 export const POST = route({ rate: { key: "oauth-exchange", limit: 10, windowSec: 300 } }, async ({ req }) => {
   const d = await body(req, Schema);
-  const entry = codes.get(d.code);
-  if (!entry || entry.exp < Date.now()) throw new HttpError(400, "Code expired or invalid.", "invalid");
-  codes.delete(d.code);
+  const entry = consumeMobileCode(d.code);
+  if (!entry) throw new HttpError(400, "Code expired or invalid.", "invalid");
   const users = await col("users");
-  const u = await users.findOne({ _id: new (await import("mongodb")).ObjectId(entry.userId) }) as UserDoc | null;
+  const u = await users.findOne({ _id: new ObjectId(entry.userId) }) as UserDoc | null;
   if (!u || u.status === "suspended") throw new HttpError(403, "Account suspended.");
   const { generateDeviceId } = await import("@/lib/mobile/tokens");
   const did = d.deviceId || generateDeviceId();
