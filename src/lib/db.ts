@@ -54,7 +54,7 @@ export type Collections = {
   reports: T.ReportDoc;
   payments: T.PaymentDoc;
   endorsements: { _id: ObjectId; fromId: ObjectId; toId: ObjectId; skill: string; text: string; createdAt: Date };
-  savedSearches: { _id: ObjectId; userId: ObjectId; name: string; params Record<string, string>; createdAt: Date };
+  savedSearches: { _id: ObjectId; userId: ObjectId; name: string; params: Record<string, string>; createdAt: Date };
   otps: { _id: ObjectId; email: string; purpose: "verify" | "reset" | "mfa"; codeHash: string; expiresAt: Date; attempts: number; createdAt: Date };
   rateLimits: { _id: string; count: number; resetAt: Date };
   audit: { _id: ObjectId; actorId?: ObjectId; action: string; target?: string; meta?: Record<string, unknown>; createdAt: Date };
