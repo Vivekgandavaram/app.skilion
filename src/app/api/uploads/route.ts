@@ -1,6 +1,5 @@
 import crypto from "node:crypto";
-import { route, body, HttpError } from "@/lib/api";
-import { checkRate } from "@/lib/security";
+import { route, body, HttpError, bad } from "@/lib/api";
 import { z } from "zod";
 
 const Schema = z.object({
