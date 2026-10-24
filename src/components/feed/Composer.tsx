@@ -81,6 +81,7 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
     if (!fileList || !fileList.length) return;
     const files = Array.from(fileList).slice(0, 3 - media.length);
     if (!files.length) return;
+    setMediaError("");
     const items: MediaDraft[] = [];
     for (const file of files) {
       const okType = file.type.startsWith("image/") || file.type.startsWith("video/");
@@ -92,32 +93,40 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
         reader.onerror = () => reject(new Error("Could not read this file."));
         reader.readAsDataURL(file);
       });
-      const entry: MediaDraft = {
-        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        type: file.type.startsWith("video/") ? "video" : "image",
-        url: result,
-        ...(file.type.startsWith("image/") ? { originalUrl: result } : {}),
-        name: file.name,
-        mimeType: file.type,
-        cropX: 50,
-        cropY: 50,
-        zoom: 1,
-      };
-      if (file.type.startsWith("video/")) {
-        const v = document.createElement("video");
-        v.preload = "metadata";
-        v.src = result;
-        await new Promise<void>((resolve) => {
-          v.onloadedmetadata = () => {
-            entry.duration = v.duration;
-            entry.start = 0;
-            entry.end = Math.min(15, Math.max(1, v.duration));
-            resolve();
-          };
-          v.onerror = () => resolve();
-        });
+      // Upload to server
+      try {
+        const res = await api.post("/api/uploads", { file: result, type: file.type.startsWith("video/") ? "video" : "image", name: file.name });
+        const entry: MediaDraft = {
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          type: file.type.startsWith("video/") ? "video" : "image",
+          url: res.url,
+          ...(file.type.startsWith("image/") ? { originalUrl: res.url } : {}),
+          name: file.name,
+          mimeType: file.type,
+          width: res.width,
+          height: res.height,
+          cropX: 50,
+          cropY: 50,
+          zoom: 1,
+        };
+        if (file.type.startsWith("video/")) {
+          const v = document.createElement("video");
+          v.preload = "metadata";
+          v.src = result;
+          await new Promise<void>((resolve) => {
+            v.onloadedmetadata = () => {
+              entry.duration = v.duration;
+              entry.start = 0;
+              entry.end = Math.min(15, Math.max(1, v.duration));
+              resolve();
+            };
+            v.onerror = () => resolve();
+          });
+        }
+        items.push(entry);
+      } catch (e: any) {
+        setMediaError(e.message || "Upload failed.");
       }
-      items.push(entry);
     }
     if (items.length) {
       setMedia((prev) => [...prev, ...items]);
@@ -146,9 +155,14 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
         <ImageCanvasEditor
           imageSrc={editingImage.originalUrl ?? editingImage.url}
           onClose={() => setEditingMediaId(null)}
-          onApply={(dataUrl) => {
-            updateMedia(editingImage.id, { url: dataUrl, mimeType: "image/jpeg", cropX: 50, cropY: 50, zoom: 1 });
+          onApply={async (dataUrl) => {
             setEditingMediaId(null);
+            try {
+              const res = await api.post("/api/uploads", { file: dataUrl, type: "image", name: editingImage.name });
+              updateMedia(editingImage.id, { url: res.url, originalUrl: res.url, mimeType: "image/jpeg", cropX: 50, cropY: 50, zoom: 1 });
+            } catch (e: any) {
+              setMediaError(e.message || "Upload failed.");
+            }
           }}
         />
       )}

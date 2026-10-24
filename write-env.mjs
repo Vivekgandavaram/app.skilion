@@ -1,0 +1,38 @@
+import fs from 'fs';
+const uri = process.env.MONGODB_URI;
+const secret = 'n8snnI-0zdi-rgTWefnvQtEEofklGbDC0Y5oToNKnUhnkCH5_i95ezLnHbRwIDOV';
+const env = `NEXT_PUBLIC_SITE_URL=http://localhost:3000
+AUTH_SECRET=${secret}
+ADMIN_EMAILS=vivekgrandavaram@gmail.com
+
+MONGODB_URI=${uri}
+MONGODB_DB=skilion
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+RESEND_API_KEY=
+RESEND_FROM=Skilion <noreply@vigotech.in>
+RESEND_REPLY_TO=support@vigotech.in
+
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash
+
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+NEXT_PUBLIC_RAZORPAY_KEY_ID=
+GST_PERCENT=18
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+
+CONTACT_EMAIL=info@vigotech.in
+NEXT_PUBLIC_SHOW_PROMPTS=0
+`;
+fs.writeFileSync('.env.local', env);
+console.log('done');

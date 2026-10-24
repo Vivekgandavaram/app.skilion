@@ -54,7 +54,7 @@ export type Collections = {
   reports: T.ReportDoc;
   payments: T.PaymentDoc;
   endorsements: { _id: ObjectId; fromId: ObjectId; toId: ObjectId; skill: string; text: string; createdAt: Date };
-  savedSearches: { _id: ObjectId; userId: ObjectId; name: string; params: Record<string, string>; createdAt: Date };
+  savedSearches: { _id: ObjectId; userId: ObjectId; name: string; params Record<string, string>; createdAt: Date };
   otps: { _id: ObjectId; email: string; purpose: "verify" | "reset" | "mfa"; codeHash: string; expiresAt: Date; attempts: number; createdAt: Date };
   rateLimits: { _id: string; count: number; resetAt: Date };
   audit: { _id: ObjectId; actorId?: ObjectId; action: string; target?: string; meta?: Record<string, unknown>; createdAt: Date };
@@ -62,6 +62,7 @@ export type Collections = {
   settings: { _id: string; value: unknown };
   verificationRequests: { _id: ObjectId; userId: ObjectId; type: "identity" | "repo"; evidence: string; status: "pending" | "approved" | "rejected"; note?: string; decidedBy?: ObjectId; createdAt: Date; decidedAt?: Date };
   appeals: { _id: ObjectId; userId?: ObjectId; email: string; message: string; status: "open" | "closed"; createdAt: Date };
+  devices: T.DeviceDoc;
 };
 
 export async function col<K extends keyof Collections>(name: K): Promise<Collection<Collections[K] & Document>> {
@@ -127,6 +128,10 @@ async function ensureIndexes(db: Db) {
     c("audit").createIndex({ createdAt: -1 }),
     c("verificationRequests").createIndex({ status: 1, createdAt: -1 }),
     c("appeals").createIndex({ status: 1, createdAt: -1 }),
+    c("devices").createIndex({ userId: 1, lastSeenAt: -1 }),
+    c("devices").createIndex({ deviceId: 1 }, { unique: true }),
+    c("devices").createIndex({ refreshHash: 1 }, { unique: true }),
+    c("devices").createIndex({ refreshExpiresAt: 1 }, { expireAfterSeconds: 0 }),
   ]);
 }
 

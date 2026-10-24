@@ -34,7 +34,9 @@ export function ipOf(req: NextRequest) {
 export function route<P = Record<string, string>>(opts: Opts, handler: (c: Ctx<P> & { user: UserDoc }) => Promise<unknown | Response>) {
   return async (req: NextRequest, ctx: { params: Promise<P> }) => {
     try {
-      if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && !sameOrigin(req)) throw new HttpError(403, "Cross-site request blocked");
+      const authHdr = req.headers.get("authorization") || req.headers.get("Authorization");
+      const isBearer = !!(authHdr && authHdr.toLowerCase().startsWith("bearer "));
+      if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && !isBearer && !sameOrigin(req)) throw new HttpError(403, "Cross-site request blocked");
       const ip = ipOf(req);
       let user: UserDoc | null = null;
       if (opts.auth) {

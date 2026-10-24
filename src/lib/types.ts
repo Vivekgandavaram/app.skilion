@@ -253,3 +253,22 @@ export interface PaymentDoc {
   _id: ObjectId; userId: ObjectId; planId: PlanId; interval: Interval; amount: number; subtotal: number; tax: number; currency: string;
   orderId: string; paymentId?: string; status: "created" | "paid" | "failed" | "refunded"; createdAt: Date; paidAt?: Date;
 }
+
+export interface DeviceDoc {
+  _id: ObjectId;
+  userId: ObjectId;
+  deviceId: string;
+  name?: string;
+  platform: "android" | "ios" | "web" | "other";
+  appVersion?: string;
+  model?: string;
+  osVersion?: string;
+  fcmToken?: string;
+  refreshHash: string;
+  refreshExpiresAt: Date;
+  lastSeenAt: Date;
+  createdAt: Date;
+  revokedAt?: Date;
+  userAgent?: string;
+  ip?: string;
+}

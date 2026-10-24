@@ -1,10 +1,11 @@
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import bcrypt from "bcryptjs";
 import { col, oid, ObjectId } from "./db";
 import { env } from "./env";
 import type { UserDoc } from "./types";
+import { verifyAccessToken } from "./mobile/tokens";
 
 export const SESSION_COOKIE = "sk_session";
 const MAX_AGE = 60 * 60 * 24 * 30;
@@ -40,11 +41,26 @@ export async function clearSession() {
   (await cookies()).set(SESSION_COOKIE, "", { httpOnly: true, secure: env.isProd, sameSite: "lax", path: "/", maxAge: 0 });
 }
 
-/** The signed-in user (or null). Cached per request. */
+/** The signed-in user (or null). Cached per request. Supports httpOnly cookie or Authorization: Bearer. */
 export const getSessionUser = cache(async (): Promise<UserDoc | null> => {
-  const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  const s = await readSession(token);
-  const id = s && oid(s.uid);
+  let uid: string | null = null;
+  try {
+    const h = await headers();
+    const auth = h.get("authorization") || h.get("Authorization");
+    if (auth && auth.toLowerCase().startsWith("bearer ")) {
+      const token = auth.slice(7).trim();
+      const v = await verifyAccessToken(token);
+      if (v) uid = v.uid;
+    }
+  } catch {}
+  if (!uid) {
+    try {
+      const token = (await cookies()).get(SESSION_COOKIE)?.value;
+      const s = await readSession(token);
+      uid = s?.uid || null;
+    } catch {}
+  }
+  const id = uid && oid(uid);
   if (!id) return null;
   const users = await col("users");
   const u = (await users.findOne({ _id: id })) as UserDoc | null;

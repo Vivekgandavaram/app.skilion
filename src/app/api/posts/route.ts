@@ -101,7 +101,23 @@ export const POST = route({ auth: true, verified: true, rate: { key: "post", lim
   const posts = await col("posts");
   const dup = await posts.findOne({ authorId: user._id, text: d.text, createdAt: { $gt: new Date(Date.now() - 86400_000) }, deleted: { $ne: true } });
   if (dup) throw new HttpError(409, "You already posted this.");
-  if (d.media.length && d.media.some((m) => !m.url.startsWith("data:"))) throw bad("Media uploads must be provided as local file data.");
+  if (d.media.length) {
+    for (const m of d.media) {
+      if (m.url.startsWith("data:")) continue; // still allow legacy during transition
+      try {
+        const u = new URL(m.url);
+        if (u.protocol !== "https:") throw bad("Media URLs must use HTTPS.");
+        // Allow cloudinary, and our own domains
+        const allowed = ["res.cloudinary.com", "media.skilion.vigotech.in", "skilion.vigotech.in", "vigotech.in"];
+        if (!allowed.some(a => u.hostname === a || u.hostname.endsWith("." + a))) {
+          // be permissive for now, but prefer https
+        }
+      } catch (e: any) {
+        if (e instanceof HttpError) throw e;
+        throw bad("Invalid media URL.");
+      }
+    }
+  }
   let preview: PostDoc["preview"], url = d.url || undefined;
   if (url) {
     try { await assertPublicUrl(url); } catch { throw bad("That link cannot be used."); }
