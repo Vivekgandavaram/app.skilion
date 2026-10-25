@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ImageIcon, Link2, Send, Video } from "lucide-react";
 import { api } from "@/lib/client";
+import { compressImage, readAsDataUrl } from "@/lib/image-compress";
 import { Field, Segmented, useToast, useDebounced } from "@/components/client-ui";
 import SkillPicker from "@/components/SkillPicker";
 import ImageCanvasEditor from "@/components/feed/ImageCanvasEditor";
@@ -84,35 +85,48 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
     setMediaError("");
     const items: MediaDraft[] = [];
     for (const file of files) {
-      const okType = file.type.startsWith("image/") || file.type.startsWith("video/");
+      const isVideo = file.type.startsWith("video/");
+      const okType = file.type.startsWith("image/") || isVideo;
       if (!okType) { setMediaError("Use only images or short videos."); continue; }
-      if (file.size > 25 * 1024 * 1024) { setMediaError("Keep each file under 25 MB."); continue; }
-      const reader = new FileReader();
-      const result = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error("Could not read this file."));
-        reader.readAsDataURL(file);
-      });
-      // Upload to server
+      // Vercel/serverless request bodies are capped near 4.5 MB once base64-encoded.
+      if (isVideo && file.size > 3 * 1024 * 1024) { setMediaError("Videos must be under 3 MB for now. Trim the clip and try again."); continue; }
+      if (!isVideo && file.size > 25 * 1024 * 1024) { setMediaError("Keep each photo under 25 MB."); continue; }
+
       try {
-        const res = await api.post("/api/uploads", { file: result, type: file.type.startsWith("video/") ? "video" : "image", name: file.name });
+        let payload: string;
+        let originalUrl: string | undefined;
+        let width: number | undefined;
+        let height: number | undefined;
+
+        if (isVideo) {
+          payload = await readAsDataUrl(file);
+        } else {
+          // Shrink the photo in the browser so the request stays small.
+          const compressed = await compressImage(file);
+          payload = compressed.dataUrl;
+          originalUrl = compressed.dataUrl;
+          width = compressed.width;
+          height = compressed.height;
+        }
+
+        const res = await api.post("/api/uploads", { file: payload, type: isVideo ? "video" : "image", name: file.name });
         const entry: MediaDraft = {
           id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          type: file.type.startsWith("video/") ? "video" : "image",
+          type: isVideo ? "video" : "image",
           url: res.url,
-          ...(file.type.startsWith("image/") ? { originalUrl: res.url } : {}),
+          ...(originalUrl ? { originalUrl } : {}),
           name: file.name,
-          mimeType: file.type,
-          width: res.width,
-          height: res.height,
+          mimeType: isVideo ? file.type : "image/jpeg",
+          width: res.width || width,
+          height: res.height || height,
           cropX: 50,
           cropY: 50,
           zoom: 1,
         };
-        if (file.type.startsWith("video/")) {
+        if (isVideo) {
           const v = document.createElement("video");
           v.preload = "metadata";
-          v.src = result;
+          v.src = payload;
           await new Promise<void>((resolve) => {
             v.onloadedmetadata = () => {
               entry.duration = v.duration;

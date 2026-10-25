@@ -8,7 +8,7 @@ const Schema = z.object({
   name: z.string().max(200).optional(),
 });
 
-const ALLOWED_IMG = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
+const ALLOWED_IMG = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/avif", "image/heic", "image/heif"];
 const ALLOWED_VID = ["video/mp4", "video/webm", "video/quicktime"];
 
 function cloudinaryConfig() {
@@ -24,8 +24,20 @@ function sign(params: Record<string, string>, secret: string) {
   return crypto.createHash("sha1").update(sorted + secret).digest("hex");
 }
 
-export const POST = route({ auth: true, verified: true, rate: { key: "upload", limit: 20, windowSec: 3600 } }, async ({ req, user }) => {
-  const d = await body(req, Schema);
+export const GET = async () => {
+  const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+  const key = process.env.CLOUDINARY_API_KEY;
+  const secret = process.env.CLOUDINARY_API_SECRET;
+  return Response.json({
+    configured: !!(cloud && key && secret),
+    cloudName: cloud || null,
+    keyPresent: !!key,
+    secretPresent: !!secret,
+    cloudLooksValid: !!cloud && /^[a-z0-9-]+$/i.test(cloud) && !/\s/.test(cloud),
+  });
+};
+
+export const POST = route({ auth: true, verified: true, rate: { key: "upload", limit: 20, windowSec: 3600 } }, async ({ req, user }) => {  const d = await body(req, Schema);
   const { cloud, key, secret } = cloudinaryConfig();
   
   // Parse data URL
@@ -78,9 +90,19 @@ export const POST = route({ auth: true, verified: true, rate: { key: "upload", l
   });
   
   if (!res.ok) {
-    const err = await res.text();
-    console.error("cloudinary upload failed", err);
-    throw new HttpError(500, "Upload failed.");
+    const raw = await res.text();
+    console.error("[cloudinary] upload failed", res.status, raw);
+    let detail = "";
+    try {
+      const j = JSON.parse(raw);
+      detail = j?.error?.message || "";
+    } catch {}
+    const hint = res.status === 401
+      ? "Cloudinary rejected the credentials. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in Vercel."
+      : res.status === 400
+        ? "Cloudinary rejected the file. Try a smaller image (under 4 MB) or a different format."
+        : "The media service could not accept this file. Please try again.";
+    throw new HttpError(502, detail ? `${hint} (${detail})` : hint, "upload_failed");
   }
   
   const json = await res.json() as any;

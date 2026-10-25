@@ -135,14 +135,14 @@ export default function ImageCanvasEditor({ imageSrc, onClose, onApply }: { imag
     try {
       const source = rotateSource(image, rotation);
       const rect = cropRect(source.width, source.height, frame, zoom, center);
-      const scale = Math.min(2048 / rect.width, 2048 / rect.height, 1);
+      const scale = Math.min(1600 / rect.width, 1600 / rect.height, 1);
       const output = document.createElement("canvas");
       output.width = Math.max(1, Math.round(rect.width * scale));
       output.height = Math.max(1, Math.round(rect.height * scale));
       const ctx = output.getContext("2d");
       if (!ctx) throw new Error("Canvas is unavailable.");
       ctx.drawImage(source, rect.x, rect.y, rect.width, rect.height, 0, 0, output.width, output.height);
-      onApply(output.toDataURL("image/jpeg", 0.92));
+      onApply(output.toDataURL("image/jpeg", 0.86));
     } catch {
       setError("Could not prepare this crop. Try another image.");
       setSaving(false);
