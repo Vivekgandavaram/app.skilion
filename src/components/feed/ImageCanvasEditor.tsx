@@ -9,6 +9,8 @@ const FRAMES = [
   { value: "4:5", label: "Portrait" },
   { value: "16:9", label: "Landscape" },
   { value: "4:3", label: "Classic" },
+  { value: "9:16", label: "Story/Reels" },
+  { value: "3:4", label: "Vertical" },
 ] as const;
 type Frame = (typeof FRAMES)[number]["value"];
 type Point = { x: number; y: number };

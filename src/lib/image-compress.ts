@@ -30,7 +30,8 @@ export async function compressImage(file: Blob, maxDimension = 1600, quality = 0
   const width = Math.max(1, Math.round(img.width * scale));
   const height = Math.max(1, Math.round(img.height * scale));
 
-  if (scale === 1 && original.length < 900_000) {
+  // If image is small enough already, still ensure it's reasonably sized
+  if (scale === 1 && original.length < 1200000) { // ~0.9MB base64
     return { dataUrl: original, width: img.width, height: img.height };
   }
 
@@ -39,6 +40,7 @@ export async function compressImage(file: Blob, maxDimension = 1600, quality = 0
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return { dataUrl: original, width: img.width, height: img.height };
+  ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(img, 0, 0, width, height);
   return { dataUrl: canvas.toDataURL("image/jpeg", quality), width, height };

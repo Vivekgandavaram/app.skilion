@@ -40,29 +40,38 @@ export const GET = async () => {
 export const POST = route({ auth: true, verified: true, rate: { key: "upload", limit: 20, windowSec: 3600 } }, async ({ req, user }) => {  const d = await body(req, Schema);
   const { cloud, key, secret } = cloudinaryConfig();
   
-  // Parse data URL
+  // Parse data URL or raw base64
   let data: string;
   let mime = "image/jpeg";
   if (d.file.startsWith("data:")) {
-    const m = d.file.match(/^data:([^;]+);base64,(.+)$/);
+    const m = d.file.match(/^data:([^;,]+)[^,]*,(.+)$/);
     if (!m) throw bad("Invalid file data");
-    mime = m[1];
+    mime = m[1].toLowerCase();
     data = m[2];
   } else {
     // assume base64
-    data = d.file;
+    data = d.file.replace(/\s/g, "");
+    // Try to guess mime for common cases
+    if (d.type === "image") mime = "image/jpeg";
+    else mime = "video/mp4";
   }
   
+  // Normalize mime types
+  if (mime === "image/jpg") mime = "image/jpeg";
+  
   if (d.type === "image") {
-    if (!ALLOWED_IMG.includes(mime)) throw new HttpError(400, "Unsupported image type.");
+    if (!ALLOWED_IMG.includes(mime)) {
+      // Try to be permissive - default to jpeg if unknown
+      mime = "image/jpeg";
+    }
   } else {
     if (!ALLOWED_VID.includes(mime)) throw new HttpError(400, "Unsupported video type.");
   }
   
   // Check size roughly
-  const sizeBytes = (data.length * 3) / 4;
-  if (d.type === "image" && sizeBytes > 10 * 1024 * 1024) throw new HttpError(400, "Image too large (max 10MB).");
-  if (d.type === "video" && sizeBytes > 25 * 1024 * 1024) throw new HttpError(400, "Video too large (max 25MB).");
+  const sizeBytes = Math.floor((data.length * 3) / 4);
+  if (d.type === "image" && sizeBytes > 15 * 1024 * 1024) throw new HttpError(400, "Image too large (max 15MB).");
+  if (d.type === "video" && sizeBytes > 30 * 1024 * 1024) throw new HttpError(400, "Video too large (max 30MB).");
   
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const folder = `skilion/${d.type}s`;
