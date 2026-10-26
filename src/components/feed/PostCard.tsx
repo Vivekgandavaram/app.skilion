@@ -11,7 +11,14 @@ import { GOAL_LABEL, COMP_LABEL, type PostMedia } from "@/lib/types";
 function MediaPreview({ item }: { item: PostMedia }) {
   const vRef = useRef<HTMLVideoElement | null>(null);
   if (item.type === "image") {
-    return <img src={item.url} alt={item.name || "Shared media"} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 16, transform: `scale(${item.zoom ?? 1})`, objectPosition: `${item.cropX ?? 50}% ${item.cropY ?? 50}%` }} />;
+    // The frame editor bakes the chosen canvas format into the saved image, so show the
+    // photo at its true shape (fitted inside the card) instead of re-cropping it into a
+    // fixed cover box. Posts with legacy pan/zoom metadata keep the cover-crop rendering.
+    const panned = (item.cropX ?? 50) !== 50 || (item.cropY ?? 50) !== 50 || (item.zoom ?? 1) !== 1;
+    if (panned) {
+      return <img src={item.url} alt={item.name || "Shared media"} style={{ width: "100%", maxHeight: 520, objectFit: "cover", borderRadius: 16, transform: `scale(${item.zoom ?? 1})`, objectPosition: `${item.cropX ?? 50}% ${item.cropY ?? 50}%` }} />;
+    }
+    return <img src={item.url} alt={item.name || "Shared media"} style={{ display: "block", marginInline: "auto", width: "auto", height: "auto", maxWidth: "100%", maxHeight: 520, borderRadius: 16 }} />;
   }
 
   return (

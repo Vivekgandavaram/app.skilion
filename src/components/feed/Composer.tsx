@@ -208,8 +208,12 @@ export default function Composer({ emailVerified, onPosted, works }: { emailVeri
                   <button type="button" className="link-btn small" onClick={() => setMedia((prev) => prev.filter((m) => m.id !== item.id))}>Remove</button>
                 </div>
                 {item.type === "image" ? (
-                  <div style={{ marginTop: 12, overflow: "hidden", borderRadius: 16, border: "1px solid var(--line)", background: "#0f172a" }}>
-                    <img src={item.url} alt={item.name} style={{ display: "block", width: "100%", maxHeight: 240, objectFit: "cover", transform: `scale(${item.zoom})`, objectPosition: `${item.cropX}% ${item.cropY}%` }} />
+                  <div style={{ marginTop: 12, overflow: "hidden", borderRadius: 16, border: "1px solid var(--line)", background: "#0f172a", display: "grid", placeItems: "center" }}>
+                    {(item.cropX !== 50 || item.cropY !== 50 || item.zoom !== 1) ? (
+                      <img src={item.url} alt={item.name} style={{ display: "block", width: "100%", maxHeight: 240, objectFit: "cover", transform: `scale(${item.zoom})`, objectPosition: `${item.cropX}% ${item.cropY}%` }} />
+                    ) : (
+                      <img src={item.url} alt={item.name} style={{ display: "block", width: "auto", height: "auto", maxWidth: "100%", maxHeight: 240 }} />
+                    )}
                   </div>
                 ) : (
                   <video src={item.url} controls muted playsInline style={{ width: "100%", maxHeight: 240, borderRadius: 12, marginTop: 12, background: "#0f172a" }} />
