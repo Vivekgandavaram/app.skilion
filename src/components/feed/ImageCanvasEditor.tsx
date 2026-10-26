@@ -43,6 +43,19 @@ function cropRect(width: number, height: number, frame: Frame, zoom: number, cen
   return { x, y, width: cropWidth, height: cropHeight };
 }
 
+/** Aspect ratio of the preview box for the chosen canvas format (rotation-aware for Original). */
+function frameAspect(frame: Frame, image: HTMLImageElement | null, rotation: number): number {
+  if (frame === "original") {
+    if (!image) return 4 / 5;
+    const sideways = Math.abs(rotation % 180) === 90;
+    const w = sideways ? image.naturalHeight : image.naturalWidth;
+    const h = sideways ? image.naturalWidth : image.naturalHeight;
+    return w / h || 4 / 5;
+  }
+  const [a, b] = frame.split(":").map(Number);
+  return a / b || 4 / 5;
+}
+
 export default function ImageCanvasEditor({ imageSrc, onClose, onApply }: { imageSrc: string; onClose: () => void; onApply: (dataUrl: string) => void }) {
   const [mounted, setMounted] = useState(false);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -55,6 +68,7 @@ export default function ImageCanvasEditor({ imageSrc, onClose, onApply }: { imag
   const [saving, setSaving] = useState(false);
   const previewRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const frameBoxRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; x: number; y: number; center: Point } | null>(null);
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -80,29 +94,41 @@ export default function ImageCanvasEditor({ imageSrc, onClose, onApply }: { imag
   useEffect(() => {
     const canvas = previewRef.current;
     const stage = stageRef.current;
-    if (!image || !canvas || !stage) return;
+    const frameBox = frameBoxRef.current;
+    if (!image || !canvas || !stage || !frameBox) return;
     const draw = () => {
       const bounds = stage.getBoundingClientRect();
       if (!bounds.width || !bounds.height) return;
+      // Size the visible frame to the selected canvas format, fitted inside the stage.
+      const aspect = frameAspect(frame, image, rotation);
+      let boxW = bounds.width;
+      let boxH = boxW / aspect;
+      if (boxH > bounds.height) {
+        boxH = bounds.height;
+        boxW = boxH * aspect;
+      }
+      frameBox.style.width = `${Math.max(1, Math.floor(boxW))}px`;
+      frameBox.style.height = `${Math.max(1, Math.floor(boxH))}px`;
+      const box = frameBox.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(bounds.width * dpr);
-      canvas.height = Math.round(bounds.height * dpr);
+      canvas.width = Math.round(box.width * dpr);
+      canvas.height = Math.round(box.height * dpr);
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, bounds.width, bounds.height);
+      ctx.clearRect(0, 0, box.width, box.height);
       const source = rotateSource(image, rotation);
       const rect = cropRect(source.width, source.height, frame, zoom, center);
-      ctx.drawImage(source, rect.x, rect.y, rect.width, rect.height, 0, 0, bounds.width, bounds.height);
+      ctx.drawImage(source, rect.x, rect.y, rect.width, rect.height, 0, 0, box.width, box.height);
       if (grid) {
         ctx.save();
         ctx.strokeStyle = "rgba(255,255,255,.58)";
         ctx.lineWidth = 1;
         for (let i = 1; i < 3; i++) {
-          const x = (bounds.width * i) / 3;
-          const y = (bounds.height * i) / 3;
-          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, bounds.height); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(bounds.width, y); ctx.stroke();
+          const x = (box.width * i) / 3;
+          const y = (box.height * i) / 3;
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, box.height); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(box.width, y); ctx.stroke();
         }
         ctx.restore();
       }
@@ -121,11 +147,10 @@ export default function ImageCanvasEditor({ imageSrc, onClose, onApply }: { imag
 
   function pointerMove(event: React.PointerEvent<HTMLCanvasElement>) {
     const drag = dragRef.current;
-    const stage = stageRef.current;
-    if (!image || !drag || !stage || drag.pointerId !== event.pointerId) return;
+    if (!image || !drag || drag.pointerId !== event.pointerId) return;
     const source = rotateSource(image, rotation);
     const rect = cropRect(source.width, source.height, frame, zoom, drag.center);
-    const bounds = stage.getBoundingClientRect();
+    const bounds = event.currentTarget.getBoundingClientRect();
     const x = drag.center.x - ((event.clientX - drag.x) * rect.width) / (bounds.width * source.width);
     const y = drag.center.y - ((event.clientY - drag.y) * rect.height) / (bounds.height * source.height);
     setCenter({ x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) });
@@ -162,7 +187,11 @@ export default function ImageCanvasEditor({ imageSrc, onClose, onApply }: { imag
         <div className="image-editor-body">
           <div className="image-editor-preview-column">
             <div className="image-editor-stage" ref={stageRef}>
-              {image ? <canvas ref={previewRef} aria-label="Photo crop canvas" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={() => { dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }} /> : <span className="spinner" />}
+              {image ? (
+                <div className="image-editor-frame" ref={frameBoxRef}>
+                  <canvas ref={previewRef} aria-label="Photo crop canvas" onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={() => { dragRef.current = null; }} onPointerCancel={() => { dragRef.current = null; }} />
+                </div>
+              ) : <span className="spinner" />}
             </div>
             {error && <p className="image-editor-error" role="alert">{error}</p>}
           </div>

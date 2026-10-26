@@ -171,8 +171,9 @@ button.chip, a.chip { cursor: pointer; text-decoration: none; } button.chip:hove
 .image-editor-icon { width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 12px; background: #eaf8ff; color: var(--blue-ink); }
 .image-editor-close { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; display: inline-grid; place-items: center; }
 .image-editor-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, .8fr); gap: 18px; padding: 18px 22px 20px; }
-.image-editor-stage { position: relative; height: min(58vh, 560px); min-height: 280px; border-radius: 20px; border: 1px solid var(--line); background: linear-gradient(180deg, #ecf5f9, #dfe9f0); overflow: hidden; }
-.image-editor-stage canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+.image-editor-stage { position: relative; height: min(58vh, 560px); min-height: 280px; border-radius: 20px; border: 1px solid var(--line); background: linear-gradient(180deg, #ecf5f9, #dfe9f0); overflow: hidden; display: grid; place-items: center; padding: 14px; }
+.image-editor-frame { border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 10px 30px -12px rgba(8, 11, 16, .35); transition: width .22s var(--ease), height .22s var(--ease); }
+.image-editor-frame canvas { width: 100%; height: 100%; display: block; cursor: grab; }
 .image-editor-controls { display: grid; gap: 18px; align-content: start; }
 .image-editor-label { display: block; font-size: 12px; font-weight: 700; color: var(--slate); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
 .image-editor-ratios, .image-editor-tools { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -186,7 +187,7 @@ button.chip, a.chip { cursor: pointer; text-decoration: none; } button.chip:hove
   .image-editor { max-height: calc(100vh - 24px); border-radius: 20px; }
   .image-editor-header, .image-editor-footer { padding: 14px 16px; }
   .image-editor-body { grid-template-columns: 1fr; padding: 14px 16px 16px; }
-  .image-editor-stage { height: min(38vh, 360px); min-height: 210px; }
+  .image-editor-stage { height: min(38vh, 360px); min-height: 210px; padding: 10px; }
 }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 .spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid rgba(21,155,212,.25); border-top-color: var(--blue); animation: spin .7s linear infinite; display: inline-block; } @keyframes spin { to { transform: rotate(360deg); } }
@@ -259,8 +260,8 @@ button.chip, a.chip { cursor: pointer; text-decoration: none; } button.chip:hove
 .side-link svg { width: 20px; height: 20px; stroke-width: 1.9; } .side-link:hover { background: rgba(255,255,255,.07); color: #fff; }
 .side-link[aria-current="page"] { background: rgba(101,199,243,.14); color: #fff; } .side-link[aria-current="page"]::before { content: ""; position: absolute; left: -14px; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: var(--vermilion); }
 .side-link .badge-n { margin-left: auto; }
-.side-foot { margin-top: auto; display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line-dark); }
-.side-user { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 14px; text-decoration: none; color: #fff; } .side-user:hover { background: rgba(255,255,255,.07); color: #fff; }
+.side-foot { margin-top: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 12px; border-top: 1px solid var(--line-dark); }
+.side-user { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 14px; text-decoration: none; color: #fff; min-width: 0; } .side-user:hover { background: rgba(255,255,255,.07); color: #fff; }
 .app-main { min-width: 0; display: flex; flex-direction: column; }
 .app-top { display: flex; align-items: center; gap: 12px; padding: 14px var(--gutter); background: rgba(243,250,254,.85); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--line); }
 .app-content { padding: 28px var(--gutter) 64px; width: 100%; max-width: 1180px; margin-inline: auto; flex: 1; }
