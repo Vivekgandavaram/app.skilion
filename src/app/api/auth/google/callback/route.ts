@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
     }
     if (saved?.mobile === "1") {
       const code = issueMobileCode(u._id.toString());
-      return NextResponse.redirect(`skilion://auth?code=${encodeURIComponent(code)}`);
+      const fallback = encodeURIComponent(`${env.siteUrl}/login?error=app_missing`);
+      return NextResponse.redirect(`intent://auth?code=${encodeURIComponent(code)}#Intent;scheme=skilion;package=in.vigotech.skilion;S.browser_fallback_url=${fallback};end`);
     }
     await setSession(u._id.toString());
     const dest = u.onboarded ? safeNext(r.next || "/discover") : "/onboarding";
