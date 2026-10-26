@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   if (!oauthConfigured("github")) return NextResponse.redirect(`${env.siteUrl}/login?error=github_not_configured`);
   const next = req.nextUrl.searchParams.get("next");
-  const url = await oauthStart("github", next ? safeNext(next) : "");
+  const mobile = req.nextUrl.searchParams.get("mobile");
+  const url = await oauthStart("github", next ? safeNext(next) : "", mobile);
   return NextResponse.redirect(url);
 }

@@ -23,14 +23,14 @@ const cfg = {
 export const oauthConfigured = (p: Provider) => !!(cfg[p].id() && cfg[p].secret());
 export const redirectUri = (p: Provider) => `${env.siteUrl}/api/auth/${p}/callback`;
 
-export async function oauthStart(p: Provider, next?: string) {
+export async function oauthStart(p: Provider, next?: string, mobile?: string | null) {
   const c = cfg[p];
   const state = crypto.randomBytes(24).toString("base64url");
   const verifier = crypto.randomBytes(32).toString("base64url");
   const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   const jar = await cookies();
   const opts = { httpOnly: true, secure: env.isProd, sameSite: "lax" as const, path: "/", maxAge: 600 };
-  jar.set(`oa_${p}`, JSON.stringify({ state, verifier, next: next || "" }), opts);
+  jar.set(`oa_${p}`, JSON.stringify({ state, verifier, next: next || "", mobile: mobile === "1" ? "1" : undefined }), opts);
   const u = new URL(c.auth);
   u.searchParams.set("client_id", c.id()!);
   u.searchParams.set("redirect_uri", redirectUri(p));
